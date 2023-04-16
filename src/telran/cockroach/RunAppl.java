@@ -7,4 +7,5 @@ public class RunAppl {
 		Controller cnt = new Controller(new CockroachImpl(2, 6));
 		cnt.getMenu().perform(new StandardInputOutput());
 	}
+	
 }
