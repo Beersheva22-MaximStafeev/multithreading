@@ -1,6 +1,8 @@
 package telran.cockroach;
 
-public class CockroachImpl implements CockroachRun {
+import java.util.Arrays;
+
+public class CockroachImpl implements Cockroach {
 
 	private int minMs;
 	private int maxMs;
@@ -13,29 +15,34 @@ public class CockroachImpl implements CockroachRun {
 	@Override
 	public String cockroachRun(int nCockroach, int nRuns, boolean printRuns) {
 		Race race = new Race(nCockroach, nRuns, printRuns, minMs, maxMs);
-		Cockroach[] cockroachs = new Cockroach[nCockroach];
+		CockroachThread[] cockroachs = new CockroachThread[nCockroach];
 		for (int i = 0; i < nCockroach; i++) {
-			cockroachs[i] = new Cockroach(race, "c" + i);
+			cockroachs[i] = new CockroachThread(race, "c" + (i + 1));
 		}
-		for (Cockroach c: cockroachs) {
+		long startMills = System.currentTimeMillis();
+		for (CockroachThread c: cockroachs) {
 			c.start();
 		}
-		for (Cockroach c: cockroachs) {
+		for (CockroachThread c: cockroachs) {
 			try {
 				c.join();
 			} catch (InterruptedException e) {
 			}
 		}
-		long minTime = Long.MAX_VALUE;
+
 		int cockroachWinner = 0;
-		for (int i = 0; i < nCockroach; i++) {
-			long curWorkTime = cockroachs[i].getWorkTime();
-			if (curWorkTime < minTime) {
-				minTime = curWorkTime;
-				cockroachWinner = i;
-			}
+		while (cockroachWinner < nCockroach && cockroachs[cockroachWinner].getPlace() != 1) {
+			cockroachWinner++;			
 		}
-		return String.format("The winner is cockroach #%s, his time: %sms", cockroachWinner + 1, minTime);
+		long minTime = cockroachs[cockroachWinner].getWorkTime();
+		String textRes = String.format("The winner is cockroach #%s, name: %s, his time: %sms%n", cockroachWinner + 1, cockroachs[cockroachWinner].getCockroachName(), minTime);
+
+		int[] place = {1};
+		String textRes1 = Arrays.stream(cockroachs)
+			.sorted((a, b) -> Long.compare(a.getPlace(), b.getPlace()))
+			.map(a -> String.format("%s. Name: %s, time: %s%n", place[0]++ ,a.getCockroachName(), a.getEndMills() - startMills))
+			.reduce(String::concat).get();
+		return textRes + textRes1;
 	}
 
 }

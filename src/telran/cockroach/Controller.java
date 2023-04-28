@@ -4,9 +4,9 @@ import telran.view.*;
 
 public class Controller {
 	
-	private CockroachRun cockroachRun;
+	private Cockroach cockroachRun;
 	
-	public Controller(CockroachRun cockroachRun) {
+	public Controller(Cockroach cockroachRun) {
 		this.cockroachRun = cockroachRun;
 	}
 	
