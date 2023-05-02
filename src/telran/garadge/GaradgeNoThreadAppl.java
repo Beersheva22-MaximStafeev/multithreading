@@ -3,7 +3,7 @@ package telran.garadge;
 //import telran.view.*;
 import java.util.*;
 
-public class GaradgeNoThread {
+public class GaradgeNoThreadAppl {
 	
 	private static class Vehicle {
 		
@@ -18,26 +18,39 @@ public class GaradgeNoThread {
 
 
 		private int getRandomTimeRepair() {
+			int[][] randomParams = {
+					{30, 91},
+					{30, 91},
+					{30, 91},
+					{91, 181},
+					{91, 181},
+					{91, 181},
+					{91, 181},
+					{91, 181},
+					{181, 481},
+					{181, 481}
+			};
 			int typeRepair = new Random().nextInt(10);
-			int timeRepare = 0;
-			switch (typeRepair) {
-				case 0:
-				case 1:
-				case 2:
-					timeRepare = new Random().nextInt(30, 90);
-					break;
-				case 3:
-				case 4:
-				case 5:
-				case 6:
-				case 7:
-					timeRepare = new Random().nextInt(91, 180);
-					break;
-				case 8:
-				case 9:
-					timeRepare = new Random().nextInt(181, 480);
-					break;
-			}
+			int timeRepare = new Random().nextInt(randomParams[typeRepair][0], randomParams[typeRepair][1]);
+//			int timeRepare = 0;
+//			switch (typeRepair) {
+//				case 0:
+//				case 1:
+//				case 2:
+//					timeRepare = new Random().nextInt(30, 90);
+//					break;
+//				case 3:
+//				case 4:
+//				case 5:
+//				case 6:
+//				case 7:
+//					timeRepare = new Random().nextInt(91, 180);
+//					break;
+//				case 8:
+//				case 9:
+//					timeRepare = new Random().nextInt(181, 480);
+//					break;
+//			}
 			return timeRepare;
 		}
 
@@ -79,12 +92,12 @@ public class GaradgeNoThread {
 	public static void main(String[] args) {
 		initValues();
 		while (timeToWork-- > 0) {
-			finishWork();
 			getFromQueueToWork();
 			generateAndPlaceToQueue();
 			getFromQueueToWork();
+			processWork();
 		}
-		finishWork();
+//		processWork();
 		printStatistic();
 	}
 
@@ -98,7 +111,7 @@ public class GaradgeNoThread {
 		
 	}
 
-	private static void finishWork() {
+	private static void processWork() {
 		workers.forEach(worker -> {
 			if (worker.isBusy) {
 				worker.vehicle.processRepair();
@@ -130,7 +143,7 @@ public class GaradgeNoThread {
 //		StandardInputOutput io = new StandardInputOutput();
 //		nWorkers = io.readInt("Enter number of workers", "From 1", 1, Integer.MAX_VALUE);
 //		queueCapacity = io.readInt("Enter queue Capacity", "Enter from 1", 1, Integer.MAX_VALUE);
-		nWorkers = 24;
+		nWorkers = 20;
 		queueCapacity = 10;
 		incomePerMinute = 100d / 60;
 		salaryPerMinute = 40d / 60;

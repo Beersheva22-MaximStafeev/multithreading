@@ -3,18 +3,19 @@ package telran.multithreading.util;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+//import java.util.concurrent.locks.ReentrantLock;
 
 public class MyLinkedBlockingQueue<E> implements BlockingQueue<E> {
 	
 	private LinkedList<E> queue = new LinkedList<>();
 	int limit;
-	Lock lock = new ReentrantLock();
-	Lock readLock = lock;
-	Lock writeLock = lock;
-	Condition readerWaiter = readLock.newCondition();
+	ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	Lock readLock = lock.readLock();
+	Lock writeLock = lock.writeLock();
+	Condition readerWaiter = writeLock.newCondition();
 	Condition writerWaiter = writeLock.newCondition();
 	
 	public MyLinkedBlockingQueue(int limit) {
@@ -211,13 +212,7 @@ public class MyLinkedBlockingQueue<E> implements BlockingQueue<E> {
 		writeLock.lock();
 		try {
 			while (queue.size() >= limit) {
-				try {
-					writerWaiter.await();
-				} catch (InterruptedException e1) {
-					if (queue.size() < limit) {
-						break;
-					}
-				}
+				writerWaiter.await();
 			}
 			add(e);
 			readerWaiter.signal();
@@ -247,7 +242,7 @@ public class MyLinkedBlockingQueue<E> implements BlockingQueue<E> {
 
 	@Override
 	public E take() throws InterruptedException {
-		readLock.lock();
+		writeLock.lock();
 		try {
 			while (queue.isEmpty()) {
 				readerWaiter.await();
@@ -255,23 +250,23 @@ public class MyLinkedBlockingQueue<E> implements BlockingQueue<E> {
 			E res = remove();
 			return res;
 		} finally {
-			readLock.unlock();
+			writeLock.unlock();
 		}
 	}
 
 	@Override
 	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-		readLock.lock();
+		writeLock.lock();
 		try {
 			Instant timeEnd = Instant.now().plus(timeout, unit.toChronoUnit());
 			while (queue.isEmpty() && Instant.now().isBefore(timeEnd)) {
-				readerWaiter.await(timeout, unit);
+				writerWaiter.await(timeout, unit);
 			}
 			E res = queue.poll();
-			writerWaiter.signal();
+//			writerWaiter.signal();
 			return res;
 		} finally {
-			readLock.unlock();
+			writeLock.unlock();
 		}
 	}
 
